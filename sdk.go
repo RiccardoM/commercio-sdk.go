@@ -112,22 +112,35 @@ func NewSDK(mnemonic string, config SDKConfig) (*SDK, error) {
 	return &SDK{wallet: w, config: config, typeMapping: generateTypeMappings(codec)}, nil
 }
 
-// SendTransaction sends all the transactions contained in txs through the pre-defined LCD, then returns the transaction
+// SendTransaction sends all the messages contained in rawMsgs through the pre-defined LCD, then returns the transaction
 // hash.
-func (sdk *SDK) SendTransaction(txs ...interface{}) (string, error) {
-	msgs := make([]json.RawMessage, len(txs))
+func (sdk *SDK) SendTransaction(rawMsgs ...interface{}) (string, error) {
+	txp, err := sdk.genTx(rawMsgs...)
+	if err != nil {
+		return "", err
+	}
 
-	for i := 0; i < len(txs); i++ {
+	return sdk.wallet.SignAndBroadcast(txp, sdk.config.LCDEndpoint, sdk.config.Mode.asSaccoMode())
+}
+
+func (sdk *SDK) genTx(rawMsgs ...interface{}) (sacco.TransactionPayload, error) {
+	if len(rawMsgs) == 0 {
+		return sacco.TransactionPayload{}, errors.New("no message provided")
+	}
+
+	msgs := make([]json.RawMessage, len(rawMsgs))
+
+	for i := 0; i < len(rawMsgs); i++ {
 		var err error
 
 		enclosure := messageEnclosure{
-			Type:  sdk.typeMapping.cosmosType(txs[i]),
-			Value: txs[i],
+			Type:  sdk.typeMapping.cosmosType(rawMsgs[i]),
+			Value: rawMsgs[i],
 		}
 
 		msgs[i], err = json.Marshal(enclosure)
 		if err != nil {
-			return "", fmt.Errorf("%w, message #%d: %s", ErrInvalidMessage, i, err.Error())
+			return sacco.TransactionPayload{}, fmt.Errorf("%w, message #%d: %s", ErrInvalidMessage, i, err.Error())
 		}
 	}
 
@@ -143,10 +156,8 @@ func (sdk *SDK) SendTransaction(txs ...interface{}) (string, error) {
 		}
 	}
 
-	txp := sacco.TransactionPayload{
+	return sacco.TransactionPayload{
 		Message: msgs,
 		Fee:     fee,
-	}
-
-	return sdk.wallet.SignAndBroadcast(txp, sdk.config.LCDEndpoint, sdk.config.Mode.asSaccoMode())
+	}, nil
 }

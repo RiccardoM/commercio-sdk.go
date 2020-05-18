@@ -14,6 +14,10 @@ type typeMapping map[string]string
 
 // cosmosType returns the Cosmos codec type associated with i.
 func (tm typeMapping) cosmosType(i interface{}) string {
+	if i == nil {
+		return ""
+	}
+
 	t := strings.Split(reflect.TypeOf(i).String(), ".")
 	if len(t) < 2 {
 		return tm[t[0]]
