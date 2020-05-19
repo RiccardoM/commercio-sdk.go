@@ -1,11 +1,11 @@
 package commercio
 
 import (
-	"errors"
-	"fmt"
-
+	commerciomint "github.com/commercionetwork/commercionetwork/x/commerciomint/types"
 	"github.com/commercionetwork/commercionetwork/x/docs"
-	"github.com/cosmos/cosmos-sdk/types"
+	id "github.com/commercionetwork/commercionetwork/x/id/types"
+	"github.com/commercionetwork/commercionetwork/x/memberships"
+	"github.com/commercionetwork/commercionetwork/x/vbr"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 )
 
@@ -15,33 +15,52 @@ type messageEnclosure struct {
 	Value interface{} `json:"value"`
 }
 
-// Address returns str as a Cosmos-compatible address, given str as a bech32-encoded string.
-func Address(str string) (types.AccAddress, error) {
-	return types.AccAddressFromBech32(str)
-}
-
-// Amount returns a Cosmos-compatible Commercio.network amount, expressed in ucommercio.
-func Amount(amount uint64) (types.Coins, error) {
-	if amount == 0 { // an uint64 can at most be zero!
-		return nil, errors.New("amount cannot be zero")
-	}
-
-	c, err := types.ParseCoins(fmt.Sprintf("%ducommercio", amount))
-	if err != nil {
-		// we panic here because since we hardcode the "ucommercio" amount, something should go *really* wrong
-		// for ParseCoins to return error, hence we must stop execution.
-		panic(fmt.Errorf("could not convert well-known field to coins, %w", err))
-	}
-
-	return c, nil
-}
-
 //
 // Commercio.network type exports
 //
 
-// MsgSend represents a message which sends some coins from an address to another
-type MsgSend bank.MsgSend
+type (
+	// Standard Cosmos-sdk messages
+	MsgSend bank.MsgSend
 
-// MsgShareDoc represents a message which shares a document from an account to another
-type MsgShareDoc docs.MsgShareDocument
+	// x/docs messages
+	Document                            docs.Document
+	DocumentMetadata                    docs.DocumentMetadata
+	MetadataSchema                      docs.MetadataSchema
+	DocumentMetadataSchema              docs.DocumentMetadataSchema
+	DocumentChecksum                    docs.DocumentChecksum
+	DocumentReceipt                     docs.DocumentReceipt
+	MsgShareDocument                    docs.MsgShareDocument
+	MsgSendDocumentReceipt              docs.MsgSendDocumentReceipt
+	MsgAddSupportedMetadataSchema       docs.MsgAddSupportedMetadataSchema
+	MsgAddTrustedMetadataSchemaProposer docs.MsgAddTrustedMetadataSchemaProposer
+
+	// x/id messages
+	DidDocument          id.DidDocument
+	PubKeys              id.PubKeys
+	PubKey               id.PubKey
+	Proof                id.Proof
+	Services             id.Services
+	MsgSetIdentity       id.MsgSetIdentity
+	MsgRequestDidPowerUp id.MsgRequestDidPowerUp
+
+	// x/memberships messages
+	MsgInviteUser               memberships.MsgInviteUser
+	MsgDepositIntoLiquidityPool memberships.MsgDepositIntoLiquidityPool
+	MsgBuyMembership            memberships.MsgBuyMembership
+
+	// x/vbr messages
+	MsgIncrementsBlockRewardsPool vbr.MsgIncrementsBlockRewardsPool
+
+	// x/commerciomint messages
+	MsgOpenCdp  = commerciomint.MsgOpenCdp
+	MsgCloseCdp = commerciomint.MsgCloseCdp
+)
+
+// Membership types definition
+var (
+	MembershipTypeBronze = "bronze"
+	MembershipTypeSilver = "silver"
+	MembershipTypeGold   = "gold"
+	MembershipTypeBlack  = "black"
+)
