@@ -11,14 +11,22 @@ import (
 	"github.com/cosmos/go-bip39"
 )
 
+// entropyProvider by default uses rand.Read, it has been defined for ease of testing.
+var entropyProvider = rand.Read
+
+// rsaGenKeyProvider by default uses rsa.GenerateKey, it has been defined for ease of testing.
+var rsaGenKeyProvider = rsa.GenerateKey
+
 // NewMnemonic return a cryptographically-secure wallet mnemonic.
 func NewMnemonic() (string, error) {
 	e := func(w error, ext error) (string, error) {
 		return "", fmt.Errorf("%w, %s", w, ext.Error())
 	}
-	entropy, err := bip39.NewEntropy(256)
-	if err != nil {
-		return e(ErrNotEnoughEntropy, err)
+
+	entropy := make([]byte, 32)
+	n, err := entropyProvider(entropy)
+	if err != nil || n != 32 {
+		return "", ErrNotEnoughEntropy
 	}
 
 	mnemonic, err := bip39.NewMnemonic(entropy)
@@ -31,7 +39,7 @@ func NewMnemonic() (string, error) {
 
 // NewRSAKeypair returns a new PEM-encoded RSA 2048-bit keypair.
 func NewRSAKeypair() (string, string, error) {
-	pk, err := rsa.GenerateKey(rand.Reader, 2048)
+	pk, err := rsaGenKeyProvider(rand.Reader, 2048)
 	if err != nil {
 		return "", "", err
 	}
