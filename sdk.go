@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/commercionetwork/commercionetwork/app"
@@ -144,16 +145,15 @@ func (sdk *SDK) genTx(rawMsgs ...interface{}) (sacco.TransactionPayload, error) 
 		}
 	}
 
-	fee := sacco.Fee{
-		Amount: make([]sacco.Coin, len(msgs)),
-		Gas:    "200000",
+	feeAmount := 10000 * len(msgs)
+	feeObj := sacco.Coin{
+		Denom:  "ucommercio",
+		Amount: strconv.FormatInt(int64(feeAmount), 10),
 	}
 
-	for i := range msgs {
-		fee.Amount[i] = sacco.Coin{
-			Denom:  "ucommercio",
-			Amount: "10000",
-		}
+	fee := sacco.Fee{
+		Amount: []sacco.Coin{feeObj},
+		Gas:    "200000",
 	}
 
 	return sacco.TransactionPayload{
