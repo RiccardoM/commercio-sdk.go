@@ -204,7 +204,7 @@ func (sdk *SDK) BuildPowerupRequest(params PowerUpParams) (MsgRequestDidPowerUp,
 	sigPayload := proof.SenderDid.String() + proof.PairwiseDid.String() + strconv.FormatInt(proof.Timestamp, 10)
 	payloadHash := sha256.Sum256([]byte(sigPayload))
 
-	_, rawKey, err := readKey(params.SignatureKey, typePublicKey)
+	_, rawKey, err := readKey(params.SignatureKey, typePrivateKey)
 	if err != nil {
 		return e(ErrInvalidSignatureKey, err)
 	}
