@@ -1,6 +1,8 @@
 package commercio
 
 import (
+	"encoding/json"
+
 	commerciomint "github.com/commercionetwork/commercionetwork/x/commerciomint/types"
 	"github.com/commercionetwork/commercionetwork/x/docs"
 	id "github.com/commercionetwork/commercionetwork/x/id/types"
@@ -11,8 +13,8 @@ import (
 
 // messageEnclosure encloses a Cosmos message into its REST-accepted enclosure.
 type messageEnclosure struct {
-	Type  string      `json:"type"`
-	Value interface{} `json:"value"`
+	Type  string          `json:"type"`
+	Value json.RawMessage `json:"value"`
 }
 
 //

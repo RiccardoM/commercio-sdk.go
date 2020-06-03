@@ -171,7 +171,7 @@ func TestPowerUpParams_validate(t *testing.T) {
 }
 
 func TestSDK_BuildPowerupRequest(t *testing.T) {
-	sdk, err := NewSDK("first purse atom language viable marble switch industry pill prevent drive develop prison art hard useless search shoulder promote rapid split wrestle balcony focus", DefaultConfig)
+	sdk, err := NewSDK("first purse atom language viable marble switch industry pill prevent drive develop prison art hard useless search shoulder promote rapid split wrestle balcony focus", DefaultSDKConfig)
 	require.NoError(t, err)
 
 	addr, err := Address("did:com:1rv8jkqulyf5j55pcjte7v8fg6h0gxcerw8a042")
@@ -249,7 +249,7 @@ func TestSDK_BuildPowerupRequest(t *testing.T) {
 }
 
 func TestSDK_BuildDidDocument(t *testing.T) {
-	sdk, err := NewSDK("first purse atom language viable marble switch industry pill prevent drive develop prison art hard useless search shoulder promote rapid split wrestle balcony focus", DefaultConfig)
+	sdk, err := NewSDK("first purse atom language viable marble switch industry pill prevent drive develop prison art hard useless search shoulder promote rapid split wrestle balcony focus", DefaultSDKConfig)
 	require.NoError(t, err)
 
 	tests := []struct {

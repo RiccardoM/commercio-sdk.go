@@ -31,7 +31,7 @@ import (
 )
 
 // BuildDidDocument creates a DidDocument for the account associated to sdk, given its publick key, signature and
-// verification key.
+// verification RSA public keys.
 func (sdk *SDK) BuildDidDocument(pubKeyString string, signatureKey, verificationKey io.Reader) (DidDocument, error) {
 	e := func(w error, ext error) (DidDocument, error) {
 		return DidDocument{}, fmt.Errorf("%w, %s", w, ext.Error())

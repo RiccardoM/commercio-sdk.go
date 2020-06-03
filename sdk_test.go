@@ -18,7 +18,7 @@ func TestSDKConfig_validate(t *testing.T) {
 	}{
 		{
 			"default config must not error",
-			DefaultConfig,
+			DefaultSDKConfig,
 			false,
 		},
 		{
@@ -81,7 +81,7 @@ func TestNewSDK(t *testing.T) {
 		{
 			"missing mnemonic",
 			"",
-			DefaultConfig,
+			DefaultSDKConfig,
 			true,
 		},
 		{
@@ -93,7 +93,7 @@ func TestNewSDK(t *testing.T) {
 		{
 			"well-formed mnemonic and config",
 			"first purse atom language viable marble switch industry pill prevent drive develop prison art hard useless search shoulder promote rapid split wrestle balcony focus",
-			DefaultConfig,
+			DefaultSDKConfig,
 			false,
 		},
 	}
@@ -114,7 +114,7 @@ func TestNewSDK(t *testing.T) {
 }
 
 func TestSDK_genTx(t *testing.T) {
-	sdk, err := NewSDK("first purse atom language viable marble switch industry pill prevent drive develop prison art hard useless search shoulder promote rapid split wrestle balcony focus", DefaultConfig)
+	sdk, err := NewSDK("first purse atom language viable marble switch industry pill prevent drive develop prison art hard useless search shoulder promote rapid split wrestle balcony focus", DefaultSDKConfig)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -155,7 +155,7 @@ func TestSDK_genTx(t *testing.T) {
 }
 
 func TestSDK_SendTransaction(t *testing.T) {
-	sdk, err := NewSDK("first purse atom language viable marble switch industry pill prevent drive develop prison art hard useless search shoulder promote rapid split wrestle balcony focus", DefaultConfig)
+	sdk, err := NewSDK("first purse atom language viable marble switch industry pill prevent drive develop prison art hard useless search shoulder promote rapid split wrestle balcony focus", DefaultSDKConfig)
 	require.NoError(t, err)
 
 	okResponder := httpmock.NewJsonResponderOrPanic(http.StatusOK, sacco.TxResponse{

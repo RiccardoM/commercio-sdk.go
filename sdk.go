@@ -10,6 +10,7 @@ import (
 
 	"github.com/commercionetwork/commercionetwork/app"
 	"github.com/commercionetwork/sacco.go"
+	"github.com/cosmos/cosmos-sdk/codec"
 )
 
 const (
@@ -21,8 +22,8 @@ const (
 )
 
 var (
-	// DefaultConfig represents the default configuration for a commercio.network SDK instance.
-	DefaultConfig = SDKConfig{
+	// DefaultSDKConfig represents the default configuration for a commercio.network SDK instance.
+	DefaultSDKConfig = SDKConfig{
 		DerivationPath: derivationPath,
 		hrp:            hrp,
 		LCDEndpoint:    "http://localhost:1317",
@@ -93,6 +94,10 @@ type SDK struct {
 	wallet      *sacco.Wallet
 	config      SDKConfig
 	typeMapping typeMapping
+	codec       *codec.Codec
+
+	Address   string
+	PublicKey string
 }
 
 // NewSDK returns a new instance of SDK initialized by given mnemonic and config.
@@ -108,9 +113,16 @@ func NewSDK(mnemonic string, config SDKConfig) (*SDK, error) {
 		return nil, fmt.Errorf("%w, %s", ErrNewSDK, err.Error())
 	}
 
-	codec := app.MakeCodec()
+	appCodec := app.MakeCodec()
 
-	return &SDK{wallet: w, config: config, typeMapping: generateTypeMappings(codec)}, nil
+	return &SDK{
+		wallet:      w,
+		config:      config,
+		typeMapping: generateTypeMappings(appCodec),
+		Address:     w.Address,
+		PublicKey:   w.PublicKeyBech32,
+		codec:       appCodec,
+	}, nil
 }
 
 // SendTransaction sends all the messages contained in rawMsgs through the pre-defined LCD, then returns the transaction
@@ -132,11 +144,14 @@ func (sdk *SDK) genTx(rawMsgs ...interface{}) (sacco.TransactionPayload, error) 
 	msgs := make([]json.RawMessage, len(rawMsgs))
 
 	for i := 0; i < len(rawMsgs); i++ {
-		var err error
+		aminoEncodedMsg, err := sdk.codec.MarshalJSON(rawMsgs[i])
+		if err != nil {
+			return sacco.TransactionPayload{}, fmt.Errorf("%w, message #%d: %s", ErrInvalidMessage, i, err.Error())
+		}
 
 		enclosure := messageEnclosure{
 			Type:  sdk.typeMapping.cosmosType(rawMsgs[i]),
-			Value: rawMsgs[i],
+			Value: aminoEncodedMsg,
 		}
 
 		msgs[i], err = json.Marshal(enclosure)
