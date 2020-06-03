@@ -122,10 +122,22 @@ func (sdk *SDK) BuildDidDocument(pubKeyString string, signatureKey, verification
 
 // PowerUpParams are parameters used by BuildPowerupRequests during its lifecycle.
 type PowerUpParams struct {
-	PubKey          string
-	TumblerKey      io.Reader
-	SignatureKey    io.Reader
-	Amount          uint64
+	// PubKey is the bech32-encoded public key of the account which sends the Power-up request.
+	PubKey string
+
+	// TumblerKey is the tumbler RSA PKIX public key.
+	TumblerKey io.Reader
+
+	// SignatureKey is the user RSA PKCS8 private key, used to build the message proof.
+	//
+	// It must be the private part of the keypair created and associated with the account which sends
+	// the transaction.
+	SignatureKey io.Reader
+
+	// Amount represents the amount the user signing the transaction wants to send to its Pairwise address.
+	Amount uint64
+
+	// PairwiseAddress is the address to which the user signing the transaction wants to send Amount tokens.
 	PairwiseAddress types.AccAddress
 }
 
