@@ -118,29 +118,43 @@ func TestSDK_genTx(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name    string
-		rawMsgs []interface{}
-		wantErr bool
+		name        string
+		rawMsgs     []interface{}
+		wantErr     bool
+		shouldPanic bool
 	}{
 		{
 			"no raw messages",
 			nil,
 			true,
+			false,
 		},
 		{
 			"message marshaling error",
 			[]interface{}{make(chan int)},
+			true,
 			true,
 		},
 		{
 			"everything is fine",
 			[]interface{}{"hello"},
 			false,
+			false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res, err := sdk.genTx(tt.rawMsgs...)
+			var res sacco.TransactionPayload
+			var err error
+
+			if tt.shouldPanic {
+				require.Panics(t, func() {
+					res, err = sdk.genTx(tt.rawMsgs...)
+				})
+				return
+			}
+
+			res, err = sdk.genTx(tt.rawMsgs...)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -193,21 +207,21 @@ func TestSDK_SendTransaction(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-
-		httpmock.RegisterResponder(http.MethodGet, "http://localhost:1317/node_info", httpmock.NewJsonResponderOrPanic(http.StatusOK, sacco.NodeInfo{}))
-		httpmock.RegisterResponder(http.MethodPost, "http://localhost:1317/txs", tt.responder)
-		httpmock.RegisterRegexpResponder(http.MethodGet, regexp.MustCompile("http://localhost:1317/auth/accounts/(.+)"), httpmock.NewJsonResponderOrPanic(http.StatusOK, sacco.AccountData{Result: sacco.AccountDataResult{Value: sacco.AccountDataValue{Address: "address"}}}))
-
 		t.Run(tt.name, func(t *testing.T) {
+			httpmock.Activate()
+			defer httpmock.DeactivateAndReset()
+
+			httpmock.RegisterResponder(http.MethodGet, "http://localhost:1317/node_info", httpmock.NewJsonResponderOrPanic(http.StatusOK, sacco.NodeInfo{}))
+			httpmock.RegisterResponder(http.MethodPost, "http://localhost:1317/txs", tt.responder)
+			httpmock.RegisterRegexpResponder(http.MethodGet, regexp.MustCompile("http://localhost:1317/auth/accounts/(.+)"), httpmock.NewJsonResponderOrPanic(http.StatusOK, sacco.AccountData{Result: sacco.AccountDataResult{Value: sacco.AccountDataValue{Address: "address"}}}))
+
 			var res string
 			var err error
 
 			if tt.msgs == nil {
 				res, err = sdk.SendTransaction()
 			} else {
-				res, err = sdk.SendTransaction(tt.msgs)
+				res, err = sdk.SendTransaction(tt.msgs...)
 			}
 
 			if tt.wantErr {
